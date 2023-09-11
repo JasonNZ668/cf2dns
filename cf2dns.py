@@ -134,8 +134,8 @@ def main(cloud):
                     temp_cf_cmips = cf_cmips.copy()
                     temp_cf_cuips = cf_cuips.copy()
                     temp_cf_ctips = cf_ctips.copy()
-                    temp_cf_abips = cf_ctips.copy()
-                    temp_cf_defips = cf_ctips.copy()
+                    temp_cf_abips = cf_cuips.copy()
+                    temp_cf_defips = cf_cuips.copy()
                     if DNS_SERVER == 1:
                         ret = cloud.get_record(domain, 20, sub_domain, "CNAME")
                         if ret["code"] == 0:
