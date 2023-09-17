@@ -199,7 +199,7 @@ def cf_update():
         email = "hpomen3000@gmail.com",
         token = "818cee3a8713603203597c5db09ce85302923"
     )
-    print("EMail: ",CF_EMAIL ," Token:", CF_TOKEN )
+    print("EMail: ",str(CF_EMAIL) ," Token:", str(CF_TOKEN) )
     zones = cf.zones.get()
     for zone in zones:
         zone_id = zone['id']
