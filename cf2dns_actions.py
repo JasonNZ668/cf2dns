@@ -10,6 +10,9 @@ from dns.aliyun import AliApi
 from dns.huawei import HuaWeiApi
 import sys
 
+#  New
+import CloudFlare
+
 #可以从https://shop.hostmonit.com获取
 KEY = os.environ["KEY"]  #"o1zrmHAF"
 #CM:移动 CU:联通 CT:电信 AB:境外 DEF:默认
@@ -29,6 +32,15 @@ REGION_ALI = 'cn-hongkong'
 #解析生效时间，默认为600秒 如果不是DNS付费版用户 不要修改!!!
 TTL = 600
 #v4为筛选出IPv4的IP  v6为筛选出IPv6的IP
+# --------new -----------------
+CF_DOMAINS = json.loads(os.environ["CF_DOMAINS"])
+#{
+#    "jecrop.top": {"ncu":["CU"], "nct":["CT","CT"], "ncm":["CM","CM"]}
+#}
+CF_EMAIL = os.environ["CF_EMAIL"]   
+CF_TOKEN = os.environ["CF_TOKEN"]   
+CF_SUB_DOMAIN_NUM = 5
+# -----------------------------
 if len(sys.argv) >= 2:
     RECORD_TYPE = sys.argv[1]
 else:
@@ -184,6 +196,143 @@ def main(cloud):
         except Exception as e:
             print("CHANGE DNS ERROR: ----Time: " + str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + "----MESSAGE: " + str(traceback.print_exc()))
 
+# ------------------   New  ---------------
+def cf_update():    
+    cf = CloudFlare.CloudFlare(
+        email = CF_EMAIL,
+        token = CF_TOKEN
+    )
+    sub_domain_num = CF_SUB_DOMAIN_NUM
+    if len(CF_DOMAINS) > 0:
+        try:
+            cfips = get_optimization_ip()
+            if cfips == None or cfips["code"] != 200:
+                log_cf2dns.logger.error("GET CLOUDFLARE IP ERROR: ----Time: " + str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + "----MESSAGE: " + str(cfips["info"]))
+                return
+            cf_cmips = cfips["info"]["CM"]
+            cf_cuips = cfips["info"]["CU"]
+            cf_ctips = cfips["info"]["CT"]
+
+            cf_cmips_arr = list(map(lambda x:x["ip"] ,cf_cmips)  )
+            cf_cuips_arr = list(map(lambda x:x["ip"] ,cf_cuips)  )
+            cf_ctips_arr = list(map(lambda x:x["ip"] ,cf_ctips)  )
+            cf_allip_arr = cf_cmips_arr + cf_cuips_arr + cf_ctips_arr
+            
+            #list(map(function,list1[]))
+            #print(cf_cmips_arr)
+
+            # print(cf_cuips,cf_ctips,cf_cmips,len(cf_cuips))   # 20个ip
+            # print(cf_cuips,len(cf_cuips)) 
+            if sub_domain_num > len(cf_cuips):
+                sub_domain_num = len(cf_cuips)
+
+            for domain, sub_domains in CF_DOMAINS.items():   #jecrop.top   @  // jecrop  cu
+                # Get zone ID (for the domain). This is why we need the API key and the domain API token won't be sufficient
+                #zone = ".".join("cu.jecrop.top".split(".")[-2:]) # domain = test.mydomain.com => zone = mydomain.com
+                zone = domain
+                print("zone: ",zone) #jecrop.top
+                zones = cf.zones.get(params={"name": zone})
+                if len(zones) == 0:
+                    print(f"Could not find CloudFlare zone {zone}, please check domain jecrop.top" )
+                    sys.exit(2)
+                zone_id = zones[0]["id"]  # zone id :940fbc9916da0e619ea9544460bafcfd
+                print("zone_id: ",zone_id)
+
+                for sub_domain, lines in sub_domains.items():    # cu  dea // ct ct  // cm cm
+                    print(sub_domain, ":sub domain  -  lines:   ", lines)  # cu   [DEF]
+                    # Fetch existing A record
+                    #a_records = cf.zones.dns_records.get(zone_id, params={"name": "cu.jecrop.top", "type": "A"})
+                    fdomain =  ".".join([sub_domain,zone])   #cu.jecrop.top
+                    print("domain full: ",fdomain)
+                    a_records = cf.zones.dns_records.get(zone_id, params={"name": fdomain, "type": "A"}) 
+                    #print("Records  in domain: " ,fdomain , "------" ,a_records)
+                    i = 1
+                    rec_ips = list(map(lambda x:x["content"] , a_records ))
+                    print("Record ips  in domain: " ,fdomain , "------" ,rec_ips)
+
+                    for a_record in a_records:
+                        #if len(a_records): # Have an existing record
+                        print("Found existing record, updating...", len(a_records),"  %d "%i,a_record["id"], cf_cuips[i]["ip"] )
+
+                        #a_record = a_records[0]
+                        # Update record & save to cloudflare
+                        #a_record["content"] 
+                        if a_record["content"] in cf_allip_arr:
+                            # str = "the length of (%s) is %d" %('runoob',len('runoob'))
+                            print("Found same ip in  existing record: (%s)   (%s)  (%s)"%(a_record["name"],a_record["id"] ,a_record["content"]) )
+                        else:
+                            #cf.zones.dns_records.put(zone_id, a_record["id"], data=a_record)
+                            if i< len( lines):
+                                if lines[i-1] == "CM":
+                                    newip =  cf_cmips[i]["ip"] #"64.69.41.80"
+                                    #changeDNS("CM", cm_info, temp_cf_cmips, domain, sub_domain, cloud)
+                                elif lines[i-1] == "CU":
+                                    newip =  cf_cuips[i]["ip"] #"64.69.41.80"
+                                    #changeDNS("CU", cu_info, temp_cf_cuips, domain, sub_domain, cloud)
+                                elif lines[i-1] == "CT":
+                                    newip =  cf_ctips[i]["ip"] #"64.69.41.80"
+                                    #changeDNS("CT", ct_info, temp_cf_ctips, domain, sub_domain, cloud)
+                                elif lines[i-1] == "AB":
+                                    newip =  cf_cuips[i]["ip"] #"64.69.41.80"
+                                    #changeDNS("AB", ab_info, temp_cf_abips, domain, sub_domain, cloud)
+                                elif lines[i-1] == "DEF":
+                                    newip =  cf_cuips[i]["ip"] #"64.69.41.80"
+                                a_record["content"] = newip
+                                cf.zones.dns_records.put(zone_id, a_record["id"], data=a_record)
+                                log_cf2dns.logger.info("UPDATE DNS SUCCESS: ----Time: " + str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + "----DOMAIN: " + domain + "----SUBDOMAIN: " + sub_domain + "----RECORDLINE: "+lines[i-1]+"----VALUE: " + a_record["content"])
+                                #log_cf2dns.logger.error("CREATE DNS ERROR: ----Time: " + str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + "----DOMAIN: " + domain + "----SUBDOMAIN: " + sub_domain + "----RECORDLINE: "+lines[i-1]+"----RECORDID: " + str(a_record["id"]) + "----VALUE: " + a_record["content"] + "----MESSAGE: "  )#+ ret["message"]
+                            else:
+                                print("New config length changed")
+                                r = cf.zones.dns_records.delete(zone_id, a_record["id"])
+                                log_cf2dns.logger.info("DELETE DNS SUCCESS: ----Time: " + str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + "----DOMAIN: " + domain + "----SUBDOMAIN: " + sub_domain + "----RECORDLINE: "+lines[i-1]+"----VALUE: " + a_record["content"])
+
+                                #cf.zones.dns_records.put(zone_id, a_record["id"], data=a_record)
+                                #cf.zones.dns_records.put(zone_id, a_record["id"], data=a_record)
+                            #a_record["content"] =  cf_cuips[i]["ip"] #"64.69.41.80"
+                            # if a_record["content"] == newip :
+                            #     print(" existing ip in record ",newip)
+                            # else:
+                            #     a_record["content"]  = newip
+                            #     cf.zones.dns_records.put(zone_id, a_record["id"], data=a_record)
+                        i = i+1
+
+
+                    if i<len(lines)+1:       #                else: # No existing record. Create !
+                        for ii in range(i,len(lines)+1):  
+                            print("Record doesn't existing, creating new record...new", ii,  cf_cuips[ii]["ip"])
+                            
+                            a_record = {}
+                            a_record["type"] = "A"
+                            a_record["name"] = fdomain
+                            a_record["ttl"] = 1 # 1 == auto
+                            a_record["content"] = cf_cuips[ii]["ip"] #"64.69.41.80"
+                            #cf.zones.dns_records.post(zone_id, data=a_record)
+
+
+                            if lines[i-1] == "CM":
+                                newip =  cf_cmips[ii]["ip"] #"64.69.41.80"
+                                #changeDNS("CM", cm_info, temp_cf_cmips, domain, sub_domain, cloud)
+                            elif lines[i-1] == "CU":
+                                newip =  cf_cuips[ii]["ip"] #"64.69.41.80"
+                                #changeDNS("CU", cu_info, temp_cf_cuips, domain, sub_domain, cloud)
+                            elif lines[i-1] == "CT":
+                                newip =  cf_ctips[ii]["ip"] #"64.69.41.80"
+                                #changeDNS("CT", ct_info, temp_cf_ctips, domain, sub_domain, cloud)
+                            elif lines[i-1] == "AB":
+                                newip =  cf_cuips[ii]["ip"] #"64.69.41.80"
+                                #changeDNS("AB", ab_info, temp_cf_abips, domain, sub_domain, cloud)
+                            elif lines[i-1] == "DEF":
+                                newip =  cf_cuips[ii]["ip"] #"64.69.41.80"
+                            a_record["content"] = newip
+
+                            cf.zones.dns_records.post(zone_id, data=a_record)    
+                            log_cf2dns.logger.info("CREATE DNS SUCCESS: ----Time: " + str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + "----DOMAIN: " + domain + "----SUBDOMAIN: " + sub_domain + "----RECORDLINE: "+lines[i-1]+"----VALUE: " + a_record["content"])
+  
+        except Exception as e:
+            traceback.print_exc()  
+            log_cf2dns.logger.error("CHANGE DNS ERROR: ----Time: " + str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + "----MESSAGE: " + str(e))
+#-------------------------------------------
+
 if __name__ == '__main__':
     if DNS_SERVER == 1:
         cloud = QcloudApiv3(SECRETID, SECRETKEY)
@@ -192,3 +341,5 @@ if __name__ == '__main__':
     elif DNS_SERVER == 3:
         cloud = HuaWeiApi(SECRETID, SECRETKEY, REGION_HW)
     main(cloud)
+    #---------------------------
+    cf_update()
