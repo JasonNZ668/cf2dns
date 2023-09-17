@@ -36,7 +36,7 @@ TTL = 600
 CF_DOMAINS = json.loads(os.environ["CF_DOMAINS"])
 CF_EMAIL = os.environ["CF_EMAIL"]   
 CF_TOKEN = os.environ["CF_TOKEN"]   
-CF_SUB_DOMAIN_NUM = 5
+CF_SUB_DOMAIN_NUM = 6
 # -----------------------------
 if len(sys.argv) >= 2:
     RECORD_TYPE = sys.argv[1]
