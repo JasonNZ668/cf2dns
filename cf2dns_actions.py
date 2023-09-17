@@ -288,12 +288,22 @@ def cf_update():
                                 elif lines[i-1] == "DEF":
                                     newip =  cf_cuips[i]["ip"] 
                                 a_record["content"] = newip
-                                cf.zones.dns_records.put(zone_id, a_record["id"], data=a_record)
+                                try:
+                                    cf.zones.dns_records.put(zone_id, a_record["id"], data=a_record)
+                                except CloudFlare.exceptions.CloudFlareAPIError as e:
+                                    exit('/dns_records.put %d %s - api call failed' % (e, e))
+                                except Exception as e:
+                                    exit('/dns_records.put - %s - api call failed' % (e))                                
                                 print("UPDATE DNS SUCCESS: ----Time: " + str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + "----DOMAIN: " + domain + "----SUBDOMAIN: " + sub_domain + "----RECORDLINE: "+lines[i-1]+"----VALUE: " + a_record["content"])
                                 #log_cf2dns.logger.error("CREATE DNS ERROR: ----Time: " + str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + "----DOMAIN: " + domain + "----SUBDOMAIN: " + sub_domain + "----RECORDLINE: "+lines[i-1]+"----RECORDID: " + str(a_record["id"]) + "----VALUE: " + a_record["content"] + "----MESSAGE: "  )#+ ret["message"]
                             else:
                                 print("New config length changed")
-                                r = cf.zones.dns_records.delete(zone_id, a_record["id"])
+                                try:
+                                    r = cf.zones.dns_records.delete(zone_id, a_record["id"])
+                                except CloudFlare.exceptions.CloudFlareAPIError as e:
+                                    exit('/dns_records.delete %d %s - api call failed' % (e, e))
+                                except Exception as e:
+                                    exit('/dns_records.delete - %s - api call failed' % (e))                                
                                 print("DELETE DNS SUCCESS: ----Time: " + str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + "----DOMAIN: " + domain + "----SUBDOMAIN: " + sub_domain + "----RECORDLINE: "+lines[i-1]+"----VALUE: " + a_record["content"])
 
                                 #cf.zones.dns_records.put(zone_id, a_record["id"], data=a_record)
@@ -318,7 +328,6 @@ def cf_update():
                             a_record["content"] = cf_cuips[ii]["ip"] 
                             #cf.zones.dns_records.post(zone_id, data=a_record)
 
-
                             if lines[i-1] == "CM":
                                 newip =  cf_cmips[ii]["ip"]
                                 #changeDNS("CM", cm_info, temp_cf_cmips, domain, sub_domain, cloud)
@@ -334,8 +343,12 @@ def cf_update():
                             elif lines[i-1] == "DEF":
                                 newip =  cf_cuips[ii]["ip"] 
                             a_record["content"] = newip
-
-                            cf.zones.dns_records.post(zone_id, data=a_record)    
+                            try:
+                                cf.zones.dns_records.post(zone_id, data=a_record)
+                            except CloudFlare.exceptions.CloudFlareAPIError as e:
+                                exit('/dns_records.post %d %s - api call failed' % (e, e))
+                            except Exception as e:
+                                exit('/dns_records.post - %s - api call failed' % (e))    
                             print("CREATE DNS SUCCESS: ----Time: " + str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + "----DOMAIN: " + domain + "----SUBDOMAIN: " + sub_domain + "----RECORDLINE: "+lines[i-1]+"----VALUE: " + a_record["content"])
   
         except Exception as e:
