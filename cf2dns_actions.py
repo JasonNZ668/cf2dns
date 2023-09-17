@@ -196,8 +196,8 @@ def main(cloud):
 # ------------------   New  ---------------
 def cf_update():    
     cf = CloudFlare.CloudFlare(
-        email = CF_EMAIL,
-        token = CF_TOKEN, debug=True
+        email = "hpomen3000@gmail.com",
+        token = "818cee3a8713603203597c5db09ce85302923", debug=True
     )
     zones = cf.zones.get()
     for zone in zones:
