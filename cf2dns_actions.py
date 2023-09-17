@@ -274,19 +274,19 @@ def cf_update():
                             #cf.zones.dns_records.put(zone_id, a_record["id"], data=a_record)
                             if i< len( lines):
                                 if lines[i-1] == "CM":
-                                    newip =  cf_cmips[i]["ip"] #"64.69.41.80"
+                                    newip =  cf_cmips[i]["ip"] 
                                     #changeDNS("CM", cm_info, temp_cf_cmips, domain, sub_domain, cloud)
                                 elif lines[i-1] == "CU":
-                                    newip =  cf_cuips[i]["ip"] #"64.69.41.80"
+                                    newip =  cf_cuips[i]["ip"] 
                                     #changeDNS("CU", cu_info, temp_cf_cuips, domain, sub_domain, cloud)
                                 elif lines[i-1] == "CT":
-                                    newip =  cf_ctips[i]["ip"] #"64.69.41.80"
+                                    newip =  cf_ctips[i]["ip"] 
                                     #changeDNS("CT", ct_info, temp_cf_ctips, domain, sub_domain, cloud)
                                 elif lines[i-1] == "AB":
-                                    newip =  cf_cuips[i]["ip"] #"64.69.41.80"
+                                    newip =  cf_cuips[i]["ip"] 
                                     #changeDNS("AB", ab_info, temp_cf_abips, domain, sub_domain, cloud)
                                 elif lines[i-1] == "DEF":
-                                    newip =  cf_cuips[i]["ip"] #"64.69.41.80"
+                                    newip =  cf_cuips[i]["ip"] 
                                 a_record["content"] = newip
                                 cf.zones.dns_records.put(zone_id, a_record["id"], data=a_record)
                                 print("UPDATE DNS SUCCESS: ----Time: " + str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + "----DOMAIN: " + domain + "----SUBDOMAIN: " + sub_domain + "----RECORDLINE: "+lines[i-1]+"----VALUE: " + a_record["content"])
@@ -298,7 +298,7 @@ def cf_update():
 
                                 #cf.zones.dns_records.put(zone_id, a_record["id"], data=a_record)
                                 #cf.zones.dns_records.put(zone_id, a_record["id"], data=a_record)
-                            #a_record["content"] =  cf_cuips[i]["ip"] #"64.69.41.80"
+                            #a_record["content"] =  cf_cuips[i]["ip"] 
                             # if a_record["content"] == newip :
                             #     print(" existing ip in record ",newip)
                             # else:
@@ -315,24 +315,24 @@ def cf_update():
                             a_record["type"] = "A"
                             a_record["name"] = fdomain
                             a_record["ttl"] = 1 # 1 == auto
-                            a_record["content"] = cf_cuips[ii]["ip"] #"64.69.41.80"
+                            a_record["content"] = cf_cuips[ii]["ip"] 
                             #cf.zones.dns_records.post(zone_id, data=a_record)
 
 
                             if lines[i-1] == "CM":
-                                newip =  cf_cmips[ii]["ip"] #"64.69.41.80"
+                                newip =  cf_cmips[ii]["ip"]
                                 #changeDNS("CM", cm_info, temp_cf_cmips, domain, sub_domain, cloud)
                             elif lines[i-1] == "CU":
-                                newip =  cf_cuips[ii]["ip"] #"64.69.41.80"
+                                newip =  cf_cuips[ii]["ip"] 
                                 #changeDNS("CU", cu_info, temp_cf_cuips, domain, sub_domain, cloud)
                             elif lines[i-1] == "CT":
-                                newip =  cf_ctips[ii]["ip"] #"64.69.41.80"
+                                newip =  cf_ctips[ii]["ip"] 
                                 #changeDNS("CT", ct_info, temp_cf_ctips, domain, sub_domain, cloud)
                             elif lines[i-1] == "AB":
-                                newip =  cf_cuips[ii]["ip"] #"64.69.41.80"
+                                newip =  cf_cuips[ii]["ip"] 
                                 #changeDNS("AB", ab_info, temp_cf_abips, domain, sub_domain, cloud)
                             elif lines[i-1] == "DEF":
-                                newip =  cf_cuips[ii]["ip"] #"64.69.41.80"
+                                newip =  cf_cuips[ii]["ip"] 
                             a_record["content"] = newip
 
                             cf.zones.dns_records.post(zone_id, data=a_record)    
