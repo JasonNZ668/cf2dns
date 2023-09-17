@@ -228,7 +228,13 @@ def cf_update():
                 #zone = ".".join("cu.jecrop.top".split(".")[-2:]) # domain = test.mydomain.com => zone = mydomain.com
                 zone = domain
                 print("zone: ",zone) #jecrop.top
-                zones = cf.zones.get(params={"name": zone})
+                #zones = cf.zones.get(params={"name": zone})
+                zones = cf.zones.get()
+                for zone in zones:
+                    zone_id = zone['id']
+                    zone_name = zone['name']
+                    print("zone_id=%s zone_name=%s" % (zone_id, zone_name))
+                
                 if len(zones) == 0:
                     print(f"Could not find CloudFlare zone {zone}, please check domain jecrop.top" )
                     sys.exit(2)
