@@ -23,7 +23,11 @@ jobs:
       - name: 'Install dependencies'
         run: if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: 'Install curl'
-        run:   curl -X GET "https://api.cloudflare.com/client/v4/zones" -H "User-Agent: python-cloudflare/2.11.7/python-requests/2.28.1/python/3.10.12" -H "Content-Type: application/json" -H "X-Auth-Email: ***" -H "X-Auth-Key: REDACTED" 
+        run: curl -X GET "https://api.cloudflare.com/client/v4/zones" \
+          -H "User-Agent: python-cloudflare/2.11.7/python-requests/2.28.1/python/3.10.12" \
+          -H "Content-Type: application/json" \
+          -H "X-Auth-Email: ***" \
+          -H "X-Auth-Key: REDACTED" 
       - name: 'run cf2dns v4'
         if: env.UPDATE_IPV4 == 'true' && !cancelled()
         env:
