@@ -199,6 +199,11 @@ def cf_update():
         email = CF_EMAIL,
         token = CF_TOKEN
     )
+    zones = cf.zones.get()
+    for zone in zones:
+        zone_id = zone['id']
+        zone_name = zone['name']
+        print("zone_id=%s zone_name=%s" % (zone_id, zone_name))
     sub_domain_num = CF_SUB_DOMAIN_NUM
     if len(CF_DOMAINS) > 0:
         try:
@@ -223,20 +228,22 @@ def cf_update():
             if sub_domain_num > len(cf_cuips):
                 sub_domain_num = len(cf_cuips)
 
-            for domain, sub_domains in CF_DOMAINS.items():   #jecrop.top   @  // jecrop  cu
+            for domain, sub_domains in CF_DOMAINS.items():   #xxx.top   @  // xxx  cu
                 # Get zone ID (for the domain). This is why we need the API key and the domain API token won't be sufficient
-                #zone = ".".join("cu.jecrop.top".split(".")[-2:]) # domain = test.mydomain.com => zone = mydomain.com
+                #zone = ".".join("cu.xxx.top".split(".")[-2:]) # domain = test.mydomain.com => zone = mydomain.com
                 zone = domain
-                print("zone: ",zone) #jecrop.top
-                #zones = cf.zones.get(params={"name": zone})
-                zones = cf.zones.get()
-                for zone in zones:
-                    zone_id = zone['id']
-                    zone_name = zone['name']
-                    print("zone_id=%s zone_name=%s" % (zone_id, zone_name))
+                print("zone: ",zone) #xxx.top
+                # query for the zone name and expect only one value back
+                try:
+                    #zones = cf.zones.get(params = {'name':zone_name,'per_page':1})
+                    zones = cf.zones.get(params={"name": zone})
+                except CloudFlare.exceptions.CloudFlareAPIError as e:
+                    exit('/zones.get %d %s - api call failed' % (e, e))
+                except Exception as e:
+                    exit('/zones.get - %s - api call failed' % (e))
                 
                 if len(zones) == 0:
-                    print(f"Could not find CloudFlare zone {zone}, please check domain jecrop.top" )
+                    print(f"Could not find CloudFlare zone {zone}, please check domain {domain}" )
                     sys.exit(2)
                 zone_id = zones[0]["id"]  # zone id :940fbc9916da0e619ea9544460bafcfd
                 print("zone_id: ",zone_id)
@@ -244,8 +251,8 @@ def cf_update():
                 for sub_domain, lines in sub_domains.items():    # cu  dea // ct ct  // cm cm
                     print(sub_domain, ":sub domain  -  lines:   ", lines)  # cu   [DEF]
                     # Fetch existing A record
-                    #a_records = cf.zones.dns_records.get(zone_id, params={"name": "cu.jecrop.top", "type": "A"})
-                    fdomain =  ".".join([sub_domain,zone])   #cu.jecrop.top
+                    #a_records = cf.zones.dns_records.get(zone_id, params={"name": "cu.xxx.top", "type": "A"})
+                    fdomain =  ".".join([sub_domain,zone])   #cu.xxx.top
                     print("domain full: ",fdomain)
                     a_records = cf.zones.dns_records.get(zone_id, params={"name": fdomain, "type": "A"}) 
                     #print("Records  in domain: " ,fdomain , "------" ,a_records)
