@@ -22,8 +22,6 @@ jobs:
           python-version: 3.10.12
       - name: 'Install dependencies'
         run: if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      - name: 'Install curl'
-        run: curl -X GET "https://api.cloudflare.com/client/v4/zones"
       - name: 'run cf2dns v4'
         if: env.UPDATE_IPV4 == 'true' && !cancelled()
         env:
@@ -42,5 +40,8 @@ jobs:
           DOMAINS: ${{ secrets.DOMAINSV6 }}
           SECRETID: ${{ secrets.SECRETID }}
           SECRETKEY: ${{ secrets.SECRETKEY }}
+          CF_DOMAINS:  ${{ secrets.CF_DOMAINS }}
+          CF_EMAIL:  ${{ secrets.CF_EMAIL }}
+          CF_TOKEN:  ${{ secrets.CF_TOKEN }}          
         run: python cf2dns_actions.py AAAA
         
