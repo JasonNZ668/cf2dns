@@ -34,9 +34,6 @@ TTL = 600
 #v4为筛选出IPv4的IP  v6为筛选出IPv6的IP
 # --------new -----------------
 CF_DOMAINS = json.loads(os.environ["CF_DOMAINS"])
-#{
-#    "jecrop.top": {"ncu":["CU"], "nct":["CT","CT"], "ncm":["CM","CM"]}
-#}
 CF_EMAIL = os.environ["CF_EMAIL"]   
 CF_TOKEN = os.environ["CF_TOKEN"]   
 CF_SUB_DOMAIN_NUM = 5
