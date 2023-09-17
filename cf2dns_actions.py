@@ -199,11 +199,11 @@ def cf_update():
         email = str(CF_EMAIL),
         token = str(CF_TOKEN)
     )
-    zones = cf.zones.get()
-    for zone in zones:
-        zone_id = zone['id']
-        zone_name = zone['name']
-        print("zone_id=%s zone_name=%s" % (zone_id, zone_name))
+    #zones = cf.zones.get()
+    #for zone in zones:
+    #    zone_id = zone['id']
+    #    zone_name = zone['name']
+    #    print("zone_id=%s zone_name=%s" % (zone_id, zone_name))
     sub_domain_num = CF_SUB_DOMAIN_NUM
     if len(CF_DOMAINS) > 0:
         try:
@@ -246,10 +246,10 @@ def cf_update():
                     print(f"Could not find CloudFlare zone {zone}, please check domain {domain}" )
                     sys.exit(2)
                 zone_id = zones[0]["id"]  # zone id :940fbc9916da0e619ea9544460bafcfd
-                print("zone_id: ",zone_id)
+                # print("zone_id: ",zone_id)
 
                 for sub_domain, lines in sub_domains.items():    # cu  dea // ct ct  // cm cm
-                    print(sub_domain, ":sub domain  -  lines:   ", lines)  # cu   [DEF]
+                    # print(sub_domain, ":sub domain  -  lines:   ", lines)  # cu   [DEF]
                     # Fetch existing A record
                     #a_records = cf.zones.dns_records.get(zone_id, params={"name": "cu.xxx.top", "type": "A"})
                     fdomain =  ".".join([sub_domain,zone])   #cu.xxx.top
@@ -258,7 +258,7 @@ def cf_update():
                     #print("Records  in domain: " ,fdomain , "------" ,a_records)
                     i = 1
                     rec_ips = list(map(lambda x:x["content"] , a_records ))
-                    print("Record ips  in domain: " ,fdomain , "------" ,rec_ips)
+                    # print("Record ips  in domain: " ,fdomain , "------" ,rec_ips)
 
                     for a_record in a_records:
                         #if len(a_records): # Have an existing record
