@@ -5,7 +5,7 @@ on:
     branches: 
       - master
   schedule:
-    - cron: '*/67 * * * *'
+    - cron: '*/15 * * * *'
 
 env:
   UPDATE_IPV4: true
@@ -29,6 +29,9 @@ jobs:
           DOMAINS: ${{ secrets.DOMAINS }}
           SECRETID: ${{ secrets.SECRETID }}
           SECRETKEY: ${{ secrets.SECRETKEY }}
+          CF_DOMAINS:  ${{ secrets.CF_DOMAINS }}
+          CF_EMAIL:  ${{ secrets.CF_EMAIL }}
+          CF_TOKEN:  ${{ secrets.CF_TOKEN }}
         run: python cf2dns_actions.py A
       - name: 'run cf2dns v6'
         if: env.UPDATE_IPV6 == 'true' && !cancelled()
