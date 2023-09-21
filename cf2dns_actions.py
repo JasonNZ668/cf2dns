@@ -33,7 +33,7 @@ REGION_ALI = 'cn-hongkong'
 TTL = 600
 #v4为筛选出IPv4的IP  v6为筛选出IPv6的IP
 # --------new -----------------
-CF_DOMAINS = json.loads(os.environ["CF_DOMAINS"])
+CF_DOMAINS = json.loads(os.environ["CF_DOMAINS"]) # {"mydomain.top": {"cu":["CU","CU"], "ct":["CT","CT"], "cm":["CM","CM"], "sip":["CU","CU","CT","CT","CM","CM"]}}
 CF_EMAIL = os.environ["CF_EMAIL"]   
 CF_TOKEN = os.environ["CF_TOKEN"]   
 CF_SUB_DOMAIN_NUM = 6
@@ -228,11 +228,11 @@ def cf_update():
             if sub_domain_num > len(cf_cuips):
                 sub_domain_num = len(cf_cuips)
 
-            for domain, sub_domains in CF_DOMAINS.items():   #xxx.top   @  // xxx  cu
+            for domain, sub_domains in CF_DOMAINS.items():   #mydomain.top   @  // mydomain.top  cu
                 # Get zone ID (for the domain). This is why we need the API key and the domain API token won't be sufficient
-                #zone = ".".join("cu.xxx.top".split(".")[-2:]) # domain = test.mydomain.com => zone = mydomain.com
-                zone = domain
-                print("zone: ",zone) #xxx.top
+                #zone = ".".join("cu.mydomain.top".split(".")[-2:]) # domain = test.mydomain.com => zone = mydomain.com  or mydomain.eu.org
+                zone = domain  # mydomain.top  mydomain.eu.org
+                print("zone: ",zone) #mydomain.top
                 # query for the zone name and expect only one value back
                 try:
                     #zones = cf.zones.get(params = {'name':zone_name,'per_page':1})
@@ -245,14 +245,14 @@ def cf_update():
                 if len(zones) == 0:
                     print(f"Could not find CloudFlare zone {zone}, please check domain {domain}" )
                     sys.exit(2)
-                zone_id = zones[0]["id"]  # zone id :940fbc9916da0e619ea9544460bafcfd
+                zone_id = zones[0]["id"]  # zone id :940fbxxxxxxxxxxx0bafcfd
                 # print("zone_id: ",zone_id)
 
                 for sub_domain, lines in sub_domains.items():    # cu  dea // ct ct  // cm cm
                     # print(sub_domain, ":sub domain  -  lines:   ", lines)  # cu   [DEF]
                     # Fetch existing A record
-                    #a_records = cf.zones.dns_records.get(zone_id, params={"name": "cu.xxx.top", "type": "A"})
-                    fdomain =  ".".join([sub_domain,zone])   #cu.xxx.top
+                    #a_records = cf.zones.dns_records.get(zone_id, params={"name": "cu.mydomain.top", "type": "A"})
+                    fdomain =  ".".join([sub_domain,zone])   #cu.mydomain.top
                     print("domain full: ",fdomain)
                     a_records = cf.zones.dns_records.get(zone_id, params={"name": fdomain, "type": "A"}) 
                     #print("Records  in domain: " ,fdomain , "------" ,a_records)
@@ -275,16 +275,12 @@ def cf_update():
                             if i< len( lines):
                                 if lines[i-1] == "CM":
                                     newip =  cf_cmips[i]["ip"] 
-                                    #changeDNS("CM", cm_info, temp_cf_cmips, domain, sub_domain, cloud)
                                 elif lines[i-1] == "CU":
                                     newip =  cf_cuips[i]["ip"] 
-                                    #changeDNS("CU", cu_info, temp_cf_cuips, domain, sub_domain, cloud)
                                 elif lines[i-1] == "CT":
                                     newip =  cf_ctips[i]["ip"] 
-                                    #changeDNS("CT", ct_info, temp_cf_ctips, domain, sub_domain, cloud)
                                 elif lines[i-1] == "AB":
                                     newip =  cf_cuips[i]["ip"] 
-                                    #changeDNS("AB", ab_info, temp_cf_abips, domain, sub_domain, cloud)
                                 elif lines[i-1] == "DEF":
                                     newip =  cf_cuips[i]["ip"] 
                                 a_record["content"] = newip
@@ -305,41 +301,23 @@ def cf_update():
                                 except Exception as e:
                                     exit('/dns_records.delete - %s - api call failed' % (e))                                
                                 print("DELETE DNS SUCCESS: ----Time: " + str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + "----DOMAIN: " + domain + "----SUBDOMAIN: " + sub_domain + "----RECORDLINE: "+lines[i-1]+"----VALUE: " + a_record["content"])
-
-                                #cf.zones.dns_records.put(zone_id, a_record["id"], data=a_record)
-                                #cf.zones.dns_records.put(zone_id, a_record["id"], data=a_record)
-                            #a_record["content"] =  cf_cuips[i]["ip"] 
-                            # if a_record["content"] == newip :
-                            #     print(" existing ip in record ",newip)
-                            # else:
-                            #     a_record["content"]  = newip
-                            #     cf.zones.dns_records.put(zone_id, a_record["id"], data=a_record)
                         i = i+1
-
-
                     if i<len(lines)+1:       #                else: # No existing record. Create !
                         for ii in range(i,len(lines)+1):  
                             print("Record doesn't existing, creating new record...new", ii,  cf_cuips[ii]["ip"])
-                            
                             a_record = {}
                             a_record["type"] = "A"
                             a_record["name"] = fdomain
                             a_record["ttl"] = 1 # 1 == auto
                             a_record["content"] = cf_cuips[ii]["ip"] 
-                            #cf.zones.dns_records.post(zone_id, data=a_record)
-
                             if lines[i-1] == "CM":
                                 newip =  cf_cmips[ii]["ip"]
-                                #changeDNS("CM", cm_info, temp_cf_cmips, domain, sub_domain, cloud)
                             elif lines[i-1] == "CU":
                                 newip =  cf_cuips[ii]["ip"] 
-                                #changeDNS("CU", cu_info, temp_cf_cuips, domain, sub_domain, cloud)
                             elif lines[i-1] == "CT":
                                 newip =  cf_ctips[ii]["ip"] 
-                                #changeDNS("CT", ct_info, temp_cf_ctips, domain, sub_domain, cloud)
                             elif lines[i-1] == "AB":
                                 newip =  cf_cuips[ii]["ip"] 
-                                #changeDNS("AB", ab_info, temp_cf_abips, domain, sub_domain, cloud)
                             elif lines[i-1] == "DEF":
                                 newip =  cf_cuips[ii]["ip"] 
                             a_record["content"] = newip
