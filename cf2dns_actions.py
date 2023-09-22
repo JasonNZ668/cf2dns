@@ -238,9 +238,9 @@ def cf_update():
                     #zones = cf.zones.get(params = {'name':zone_name,'per_page':1})
                     zones = cf.zones.get(params={"name": zone})
                 except CloudFlare.exceptions.CloudFlareAPIError as e:
-                    exit('/zones.get %d %s - api call failed' % (e, e))
+                    print('/zones.get %d %s - api call failed' % (e, e))
                 except Exception as e:
-                    exit('/zones.get - %s - api call failed' % (e))
+                    print('/zones.get - %s - api call failed' % (e))
                 
                 if len(zones) == 0:
                     print(f"Could not find CloudFlare zone {zone}, please check domain {domain}" )
@@ -287,9 +287,9 @@ def cf_update():
                                 try:
                                     cf.zones.dns_records.put(zone_id, a_record["id"], data=a_record)
                                 except CloudFlare.exceptions.CloudFlareAPIError as e:
-                                    exit('/dns_records.put %d %s - api call failed' % (e, e))
+                                    print('/dns_records.put %d %s - api call failed' % (e, e))
                                 except Exception as e:
-                                    exit('/dns_records.put - %s - api call failed' % (e))                                
+                                    print('/dns_records.put - %s - api call failed' % (e))                                
                                 print("UPDATE DNS SUCCESS: ----Time: " + str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + "----DOMAIN: " + domain + "----SUBDOMAIN: " + sub_domain + "----RECORDLINE: "+lines[i-1]+"----VALUE: " + a_record["content"])
                                 #log_cf2dns.logger.error("CREATE DNS ERROR: ----Time: " + str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + "----DOMAIN: " + domain + "----SUBDOMAIN: " + sub_domain + "----RECORDLINE: "+lines[i-1]+"----RECORDID: " + str(a_record["id"]) + "----VALUE: " + a_record["content"] + "----MESSAGE: "  )#+ ret["message"]
                             else:
@@ -297,9 +297,9 @@ def cf_update():
                                 try:
                                     r = cf.zones.dns_records.delete(zone_id, a_record["id"])
                                 except CloudFlare.exceptions.CloudFlareAPIError as e:
-                                    exit('/dns_records.delete %d %s - api call failed' % (e, e))
+                                    print('/dns_records.delete %d %s - api call failed' % (e, e))
                                 except Exception as e:
-                                    exit('/dns_records.delete - %s - api call failed' % (e))                                
+                                    print('/dns_records.delete - %s - api call failed' % (e))                                
                                 print("DELETE DNS SUCCESS: ----Time: " + str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + "----DOMAIN: " + domain + "----SUBDOMAIN: " + sub_domain + "----RECORDLINE: "+lines[i-1]+"----VALUE: " + a_record["content"])
                         i = i+1
                     if i<len(lines)+1:       #                else: # No existing record. Create !
@@ -324,9 +324,11 @@ def cf_update():
                             try:
                                 cf.zones.dns_records.post(zone_id, data=a_record)
                             except CloudFlare.exceptions.CloudFlareAPIError as e:
-                                exit('/dns_records.post %d %s - api call failed' % (e, e))
+                                #exit('/dns_records.post %d %s - api call failed' % (e, e))
+                                print('/dns_records.post %d %s - api call failed' % (e, e))
                             except Exception as e:
-                                exit('/dns_records.post - %s - api call failed' % (e))    
+                                #exit('/dns_records.post - %s - api call failed' % (e)) 
+                                print('/dns_records.post - %s - api call failed' % (e)) 
                             print("CREATE DNS SUCCESS: ----Time: " + str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + "----DOMAIN: " + domain + "----SUBDOMAIN: " + sub_domain + "----RECORDLINE: "+lines[i-1]+"----VALUE: " + a_record["content"])
   
         except Exception as e:
