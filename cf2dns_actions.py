@@ -272,7 +272,7 @@ def cf_update():
                             print("Found same ip in  existing record: (%s)   (%s)  (%s)"%(a_record["name"],a_record["id"] ,a_record["content"]) )
                         else:
                             #cf.zones.dns_records.put(zone_id, a_record["id"], data=a_record)
-                            if i< len( lines):
+                            if i<= len( lines):
                                 if lines[i-1] == "CM":
                                     newip =  cf_cmips[i]["ip"] 
                                 elif lines[i-1] == "CU":
